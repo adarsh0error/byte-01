@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -9,9 +11,15 @@ import pyttsx3
 import google.generativeai as genai
 
 # --- 1. CONFIGURATION ---
-# REPLACE WITH YOUR ACTUAL API KEY
-genai.configure(api_key="AIzaSyDVgBQDTXIyTKuepxUh29Pe5iKzFJ8wIMU")
-# Using 'gemini-pro' as it is the most stable for your current library version
+load_dotenv()  # 2. Load the .env file
+api_key = os.getenv('GEMINI_API_KEY')
+if not api_key:
+    print(" ERROR: GEMINI_API_KEY environment variable not found.")
+    # Fallback for testing ONLY (remove before pushing to GitHub)
+    # api_key = "" 
+else:
+    # THIS IS THE MISSING PIECE:
+    genai.configure(api_key=api_key)
 model_llm = None
 try:
     print("Searching for available models...")
@@ -24,7 +32,7 @@ except Exception as e:
     print(f"Could not list models: {e}")
 
 if model_llm is None:
-    print("❌ CRITICAL: No compatible models found. Check your API key or internet.")
+    print("CRITICAL: No compatible models found. Check your API key or internet.")
 
 WAKE_WORD = "hello"
 
@@ -35,7 +43,7 @@ vision_lock = threading.Lock()
 # --- 3. THE MOUTH (Thread-Safe Version) ---
 def speak(text):
     """Initializes a fresh engine for every call to avoid threading crashes."""
-    print(f"🤖 Agent: {text}")
+    print(f" Agent: {text}")
     def _run_tts():
         try:
             engine = pyttsx3.init()
