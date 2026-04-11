@@ -1,3 +1,5 @@
 .env
+team_members/
 __pycache__/
 *.pyc
+*.pt
