@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import face_recognition
 import os
+from udp_comms import TargetTracker # Add this import
 
 # --- 1. PREP ---
 KNOWN_DIR = "team_members"
@@ -25,6 +26,7 @@ config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 profile = pipeline.start(config)
 
 align = rs.align(rs.stream.color)
+tracker = TargetTracker(pi_ip="10.196.200.34")
 
 try:
     while True:
@@ -87,6 +89,14 @@ try:
                     best_match = np.argmin(face_recognition.face_distance(known_encodings, face_encoding))
                     name = known_names[best_match]
                     hud_color = (120, 255, 120) # Success Green
+
+                    # --- NEW: SEND DATA TO PI ---
+                    # Only send tracking data if it's a real, recognized team member
+                    error_val = tracker.send_target_error(left, right)
+                    cv2.putText(frame, f"UDP Error: {error_val}px", (10, 30), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+                    
+                    
                 else:
                     name = "SPOOF (2D REFLECTION)"
                     hud_color = (0, 0, 255) # Warning Red
